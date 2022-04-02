@@ -39,7 +39,7 @@ helm list
 ## 说明
 
 ## 部署/更新 测试
-helm upgrade --install zzpt-test-cim -n zzpt-back-test stable/nsqd \
+helm upgrade --install me -n tool stable/nsqd \
      --set nsqadmin.ingress.hosts={nsq.example.com}
 
 ## 部署/更新 增加自定义参数
