@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+  {{- if .Values.metrics.enabled }}
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  type: {{ .Values.service.type }}
+  ports:
+    - name: redis
+      port: {{ .Values.service.port }}
+      protocol: TCP
+      targetPort: redis
+    {{- if .Values.metrics.enabled }}
+    - name: metrics
+      protocol: TCP
+      port: 9121
+      targetPort: metrics
+    {{- end }}
