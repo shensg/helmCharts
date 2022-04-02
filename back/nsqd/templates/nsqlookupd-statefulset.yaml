@@ -1,0 +1,72 @@
+{{- $parts := split "-" .Release.Name -}}
+{{- $nsqlookupdName := printf "%s-nsqlookupd" .Release.Name -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $nsqlookupdName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $nsqlookupdName }}
+spec:
+  serviceName: "{{ $nsqlookupdName }}"
+  replicas: {{ .Values.nsqlookupd.replicaCount }}
+  revisionHistoryLimit: 2
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: {{ $nsqlookupdName }}
+  template:
+    metadata:
+      labels:
+        app: {{ $nsqlookupdName }}
+        group: {{ .Release.Name }}
+        project: {{ $parts._0 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.nsqlookupd.podSecurityContext | nindent 8 }}
+      containers:
+      - name: nsqlookupd
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command:
+          - /nsqlookupd
+        terminationMessagePolicy: FallbackToLogsOnError
+        ports:
+          - containerPort: 4160
+            name: tcp
+          - containerPort: 4161
+            name: http
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        resources:
+          {{- toYaml .Values.nsqlookupd.resources | nindent 10 }}
+      terminationGracePeriodSeconds: 5
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nsqlookupd.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nsqlookupd.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nsqlookupd.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

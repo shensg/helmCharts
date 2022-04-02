@@ -1,0 +1,23 @@
+{{- if .Values.nsqexport.enabled -}}
+{{- $nsqexportName := printf "%s-nsqexport" .Release.Name -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $nsqexportName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $nsqexportName }}
+  {{- with .Values.nsqexport.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.nsqexport.service.type }}
+  ports:
+    - port: 9527
+      targetPort: 9527
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ $nsqexportName }}
+{{- end }}

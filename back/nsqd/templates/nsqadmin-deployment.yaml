@@ -1,0 +1,65 @@
+{{- $parts := split "-" .Release.Name -}}
+{{- $nsqadminName := printf "%s-nsqadmin" .Release.Name -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $nsqadminName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $nsqadminName }}
+spec:
+  replicas: {{ .Values.nsqadmin.replicaCount }}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: {{ $nsqadminName }}
+  template:
+    metadata:
+      labels:
+        app: {{ $nsqadminName }}
+        group: {{ .Release.Name }}
+        project: {{ $parts._0 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.nsqadmin.podSecurityContext | nindent 8 }}
+      containers:
+      - name: nsqadmin
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command:
+          - /nsqadmin
+        args:
+          {{- $nsqlookupdName := printf "%s-nsqlookupd" .Release.Name -}}
+          {{- range $i, $e := until (atoi (printf "%d" (int64 .Values.nsqlookupd.replicaCount))) }}
+          - --lookupd-http-address={{ $nsqlookupdName }}-{{ $i }}.{{ $nsqlookupdName }}:4161
+          {{- end }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        ports:
+        - containerPort: 4171
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+        resources:
+          {{- toYaml .Values.nsqadmin.resources | nindent 10 }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nsqadmin.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nsqadmin.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nsqadmin.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

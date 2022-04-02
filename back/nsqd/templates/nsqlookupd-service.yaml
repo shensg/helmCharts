@@ -1,0 +1,19 @@
+{{- $nsqlookupdName := printf "%s-nsqlookupd" .Release.Name -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $nsqlookupdName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $nsqlookupdName }}
+spec:
+  type: {{ .Values.nsqlookupd.service.type }}
+  ports:
+    - port: 4160
+      targetPort: 4160
+      name: tcp
+    - port: 4161
+      targetPort: 4161
+      name: http
+  selector:
+    app: {{ $nsqlookupdName }}

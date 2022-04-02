@@ -1,0 +1,19 @@
+{{- $nsqdName := printf "%s-nsqd" .Release.Name -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $nsqdName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $nsqdName }}
+spec:
+  type: {{ .Values.nsqd.service.type }}
+  ports:
+    - port: 4150
+      targetPort: 4150
+      name: tcp
+    - port: 4151
+      targetPort: 4151
+      name: http
+  selector:
+    app: {{ $nsqdName }}

@@ -1,0 +1,120 @@
+# Default values for nsqd.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  repository: nsq
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: v1.1.0
+
+imagePullSecrets:
+  - name: regcred
+
+nsqlookupd:
+  replicaCount: 2
+
+  flags: []
+
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+
+  service:
+    type: ClusterIP
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+nsqadmin:
+  replicaCount: 1
+
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+
+  service:
+    type: ClusterIP
+    port: 80
+    nodePort:
+
+  ingress:
+    enabled: enabled
+    className: ""
+    annotations:
+      kubernetes.io/ingress.class: edge
+      kubernetes.io/ingress.rule-mix: "false"
+      nginx.ingress.kubernetes.io/use-regex: "true"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/auth-type: basic
+      nginx.ingress.kubernetes.io/auth-secret: basic-auth
+    hosts: []
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+nsqd:
+  replicaCount: 2
+
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+
+  service:
+    type: ClusterIP
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - topologyKey: "kubernetes.io/hostname"
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - nsqd
+
+  persistence:
+    enabled: false
+    size: 5Gi
+    storageClass: "-"
+    accessModes:
+      - ReadWriteOnce
+
+nsqexport:
+  enabled: ture
+  image:
+    repository: nsq-prometheus-exporter
+    pullPolicy: IfNotPresent
+    tag: v1.0
+
+  replicaCount: 1
+
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+
+  service:
+    type: ClusterIP
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9527"
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+basicAuth:
+  enabled: false
+  type: Opaque
+  username: "admin"
+  password: "123456"

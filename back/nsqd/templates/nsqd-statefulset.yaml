@@ -1,0 +1,114 @@
+{{- $parts := split "-" .Release.Name -}}
+{{- $nsqdName := printf "%s-nsqd" .Release.Name -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $nsqdName }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  serviceName: "{{ $nsqdName }}"
+  replicas: {{ .Values.nsqd.replicaCount }}
+  revisionHistoryLimit: 2
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: {{ $nsqdName }}
+  template:
+    metadata:
+      labels:
+        app: {{ $nsqdName }}
+        group: {{ .Release.Name }}
+        project: {{ $parts._0 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.nsqd.podSecurityContext | nindent 8 }}
+      containers:
+      - name: nsqd
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        command:
+          - /nsqd
+        args:
+          - --broadcast-address=$(HOSTNAME).{{ $nsqdName }}
+          {{- $nsqlookupdName := printf "%s-nsqlookupd" .Release.Name -}}
+          {{- range $i, $e := until (atoi (printf "%d" (int64 .Values.nsqlookupd.replicaCount))) }}
+          - --lookupd-tcp-address={{ $nsqlookupdName }}-{{ $i }}.{{ $nsqlookupdName }}:4160
+          {{- end }}
+          - -data-path=/data
+          {{- range  .Values.nsqd.flags }}
+          - {{ . }}
+          {{- end }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        ports:
+        - containerPort: 4150
+          name: tcp
+        - containerPort: 4151
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: http
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: http
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        resources:
+          {{- toYaml .Values.nsqd.resources | nindent 10 }}
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      terminationGracePeriodSeconds: 30
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nsqd.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nsqd.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nsqd.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      {{- if not .Values.nsqd.persistence.enabled }}
+      - name: "data"
+        emptyDir: {}
+      {{- end }}
+      {{- if and .Values.nsqd.persistence.enabled }}
+      - name: "data"
+        persistentVolumeClaim:
+          claimName: data
+      {{- end }}
+  {{- if and .Values.nsqd.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+        - {{ .Values.nsqd.persistence.accessModes }}
+      resources:
+        requests:
+          storage: {{ .Values.nsqd.persistence.size | quote }}
+    {{- if .Values.nsqd.persistence.storageClass }}
+    {{- if (eq "-" .Values.nsqd.persistence.storageClass) }}
+      storageClassName: ""
+    {{- else }}
+      storageClassName: "{{ .Values.nsqd.persistence.storageClass }}"
+    {{- end }}
+    {{- end }}
+  {{- end }}

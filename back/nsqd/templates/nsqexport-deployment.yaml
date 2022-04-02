@@ -1,0 +1,52 @@
+{{- if .Values.nsqexport.enabled -}}
+{{- $parts := split "-" .Release.Name -}}
+{{- $nsqexportName := printf "%s-nsqexport" .Release.Name -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $nsqexportName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $nsqexportName }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ $nsqexportName }}
+  replicas: {{ .Values.nsqexport.replicaCount }}
+  revisionHistoryLimit: 2
+  minReadySeconds: 2
+  template:
+    metadata:
+      labels:
+        app: {{ $nsqexportName }}
+        group: {{ .Release.Name }}
+        project: {{ $parts._0 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.nsqexport.podSecurityContext | nindent 8 }}
+      containers:
+      - name: nsq-exporter
+        imagePullPolicy: {{ .Values.nsqexport.image.pullPolicy }}
+        image: "{{ .Values.nsqexport.image.repository }}:{{ .Values.nsqexport.image.tag }}"
+        args: ["-nsq.lookupd.address={{ .Release.Name }}-nsqlookupd:4161"]
+        ports:
+        - name: http
+          containerPort: 9527
+          protocol: TCP
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nsqadmin.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nsqadmin.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nsqadmin.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
