@@ -14,7 +14,7 @@
 
 ```bash
 # 添加仓库
-helm repo add --username=<username> --password=<password> yidejia https://ydjharbor.jingzhuan.cn/chartrepo/base
+helm repo add --username=<username> --password=<password> stable https://harhor.example.local/chartrepo/base
 
 # 查看仓库列表
 helm repo list
@@ -27,7 +27,7 @@ helm repo list
 helm repo update
 
 # 部署/更新 Chart
-helm upgrade --install <releaseName> -n <namespace> yidejia/memcached
+helm upgrade --install <releaseName> -n <namespace> stable/memcached
 
 # 列出 Release
 helm list
@@ -37,15 +37,9 @@ helm list
 
 ```bash
 ## 说明
-# 这里以部署/更新【jxs-cw】后端项目为例。
 
-## 部署/更新 测试环境
-helm upgrade --install cw-test-jxs-memcached -n cw-back-test yidejia/memcached \
-    --set image.memcachedMaxMemory=256 \
-    --set resources.limits.cpu=100m,resources.limits.memory=256Mi,resources.requests.cpu=100m,resources.requests.memory=256Mi
-
-## 部署/更新 生产环境
-helm upgrade --install cw-prod-jxs-memcached -n cw-back-prod yidejia/memcached \
+## 部署/更新
+helm upgrade --install my-memcached -n cached stable/memcached \
     --set image.memcachedMaxMemory=256 \
     --set resources.limits.cpu=200m,resources.limits.memory=512Mi,resources.requests.cpu=150m,resources.requests.memory=256Mi
 ```
@@ -77,7 +71,7 @@ helm uninstall <releaseName> -n <namespace>
 # 这里以卸载【jxs-cw】后端项目为例。
 
 ## 卸载测试环境
-helm uninstall cw-test-jxs-memcached -n cw-back-test
+helm uninstall my-memcached -n cached
 ```
 
 该命令将删除与 Chart 关联的所有 Kubernetes 资源并完全删除 Release。
@@ -88,14 +82,14 @@ helm uninstall cw-test-jxs-memcached -n cw-back-test
 ---|---|---
 nameOverride                |覆盖 .Chart.Name 名称          |""
 fullnameOverride            |覆盖 memcached.fullname 名称   |""
-image.repository            |`memcached` 镜像                           |ydjharbor.jingzhuan.cn/base/memcached
+image.repository            |`memcached` 镜像                           |memcached
 image.tag                   |`memcached` 标签                           |"1.5.16-alpine"
 image.pullPolicy            |`memcached` 镜像拉取策略                   |IfNotPresent
 image.memcachedMaxMemory    |`memcached` 容器的最大内存使用              |"64"
 image.memcachedConnections  |`memcached` 容器的最大同时连接数             | "1024"
 imagePullSecrets.name       |包含私有`registry`凭证的 Secret 资源的名称   |regcred
 metrics.enabled             |启用 Metrics                | true
-metrics.repository          |`metrics` 镜像              | ydjharbor.jingzhuan.cn/devops/memcached-exporter
+metrics.repository          |`metrics` 镜像              | memcached-exporter
 metrics.pullPolicy          |`metrics` 镜像拉取策略       | IfNotPresent
 metrics.tag                 |`metrics` 标签              | "v0.6.0"
 podAnnotations              |Pod 的注释                    | {}

@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 image:
-  repository: ydjharbor.jingzhuan.cn/base/redis
+  repository: redis
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: "4.0.14-alpine"
@@ -14,7 +14,7 @@ imagePullSecrets:
 
 metrics:
   enabled: true
-  repository: ydjharbor.jingzhuan.cn/devops/redis_exporter
+  repository: redis_exporter
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: "v1.6.1"

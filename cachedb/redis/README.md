@@ -14,7 +14,7 @@
 
 ```bash
 # 添加仓库
-helm repo add --username=<username> --password=<password> yidejia https://ydjharbor.jingzhuan.cn/chartrepo/base
+helm repo add --username=<username> --password=<password> stable https://harhor.example.local/chartrepo/base
 
 # 查看仓库列表
 helm repo list
@@ -27,7 +27,7 @@ helm repo list
 helm repo update
 
 # 部署/更新 Chart
-helm upgrade --install <releaseName> -n <namespace> yidejia/redis
+helm upgrade --install <releaseName> -n <namespace> stable/redis
 
 # 列出 Release
 helm list
@@ -37,15 +37,10 @@ helm list
 
 ```bash
 ## 说明
-# 这里以部署/更新【jxs-cw】后端项目为例。
 
-## 部署/更新 测试环境
-helm upgrade --install cw-test-jxs-redis -n cw-back-test yidejia/redis \
-    --set image.redisPassword=KneYgDdAvfZaSPeqCMSI9dEJ4RTXFfgq
-
-## 部署/更新 生产环境（注意：生产环境使用云Redis服务，收下仅参考）
-helm upgrade --install cw-prod-jxs-redis -n cw-back-prod yidejia/redis \
-    --set image.redisPassword=GxwjqvTd1Iw8lF8LLxi4nka7SxB0DIPT \
+## 部署/更新 
+helm upgrade --install my-redis -n cached stable/redis \
+    --set image.redisPassword=123456 \
     --set resources.limits.cpu=200m,resources.limits.memory=512Mi,resources.requests.cpu=150m,resources.requests.memory=128Mi
 ```
 
@@ -76,7 +71,7 @@ helm uninstall <releaseName> -n <namespace>
 # 这里以卸载【jxs-cw】后端项目为例。
 
 ## 卸载测试环境
-helm uninstall cw-test-jxs-redis -n cw-back-test
+helm uninstall my-redis -n cached
 ```
 
 该命令将删除与 Chart 关联的所有 Kubernetes 资源并完全删除 Release。
@@ -87,13 +82,13 @@ helm uninstall cw-test-jxs-redis -n cw-back-test
 ---|---|---
 nameOverride                |覆盖 .Chart.Name 名称          |""
 fullnameOverride            |覆盖 redis.fullname 名称       |""
-image.repository            |`redis` 镜像                           |ydjharbor.jingzhuan.cn/base/redis
+image.repository            |`redis` 镜像                           |redis
 image.tag                   |`redis` 标签                           |"4.0.14-alpine"
 image.pullPolicy            |`redis` 镜像拉取策略                   |IfNotPresent
 image.redisPassword         |`redis` 容器的 requirepass      |""
 imagePullSecrets.name       |包含私有`registry`凭证的 Secret 资源的名称   |regcred
 metrics.enabled             |启用 Metrics                | true
-metrics.repository          |`metrics` 镜像              | ydjharbor.jingzhuan.cn/devops/redis_exporter
+metrics.repository          |`metrics` 镜像              | redis_exporter
 metrics.pullPolicy          |`metrics` 镜像拉取策略       | IfNotPresent
 metrics.tag                 |`metrics` 标签              | "v1.6.1"
 podAnnotations              |Pod 的注释                    | {}
