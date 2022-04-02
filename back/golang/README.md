@@ -159,5 +159,5 @@ ingress.tls.enabled         |启用 Ingress TLS           |true
 autoscaling.enabled         |是否开启自动伸缩配置          |false
 autoscaling.minReplicas     |自动伸缩最小副本集下限          |3
 autoscaling.maxReplicas     |自动伸缩最大副本集上限        |20
-autoscaling.targetCPUUtilizationPercentage        |通过CPU使用率触发自动伸缩的机制          |50
-autoscaling.targetMemoryUtilizationPercentage     |通过Memory使用率触发自动伸缩的机制       |50
+autoscaling.targetCPUUtilizationPercentage        |通过CPU使用率触发自动伸缩的机制          |60
+autoscaling.targetMemoryUtilizationPercentage     |通过Memory使用率触发自动伸缩的机制       |60
