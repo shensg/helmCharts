@@ -1,0 +1,139 @@
+快速创建一个chart 模板，模板结构入tree列出的一样
+# helm create chart
+# tree -L 4 chart
+chart
+|__charts
+|__templates
+|  |__tests
+|  |  |__test-connection.yaml
+|  |__helpers.tpl                 ## 这个文件用于 存放模板，给其他地方调用，本身不会被渲染（参照函数库理解）
+|  |__deployment.yaml             ## 无状态服务部署
+|  |__hpa.yaml                    ## horizontalpodautoscalers.autoscaling，自动伸缩
+|  |__ingress.yaml                ## ingress 外部访问
+|  |__NOTES.txt                   ## chart的说明文件，会在安装、升级后显示其内容，也可以用模板的方式写，会被渲染。
+|  |__service.yaml                ## service pod负载均衡
+|  |__serviceaccount.yaml
+|__.helmignore
+|__Chart.yaml                    ## Charts 信息记录
+|__values.yaml                   ## 全局的参数
+
+模板中常用的内置函数和管道
+title       # 首字母答谢
+upper       # 所有英文字符专成大写
+quote       # 给字符加上引号
+default val # 定义一个默认值
+requied     # 定义一个约束,values文件中必须定义此值，否则就报错
+b64enc      # 使用base64加密
+b64dec      # 使用base64解密
+indent INT  # 缩进指定字符
+nindent int # 在新行缩进几个字符
+
+列表循环：
+{{ range $index, $val := .Values.name }}
+{{ $index }} : {{ $val }}
+{{ end }}
+
+安装服务
+通过一个helm install使用模板快速启动一个服务
+# helm install nginx
+
+新安装一个服务
+# helm repo update && helm install my-releaseName \
+-n front stable/nginx \
+--set projectGroup=group \
+--set projectName=items \
+--set image.repository=nginx \
+--set image.tag=16-alpine \
+--set service.enabled=true \
+--set ingress.enabled=true \
+--set ingress.hosts={test1.example.com\,test2.example.com}
+已安装的服务更新
+# helm repo update && helm upgrade my-nginx \
+-n front stable/nginx\
+--set projectGroup=group \
+--set projectName=items \
+--set image.repository=nginx \
+--set image.tag=16-alpine \
+--set service.enabled=true \
+--set ingress.enabled=true \
+--set ingress.hosts={test1.example.com\,test2.example.com}
+查看历史版本，已经有两个版本标签了
+# helm list
+NAME              	NAMESPACE     	REVISION	UPDATED                               	STATUS  	CHART     	APP VERSION
+my-nginx         	front       	2       	2021-12-17 15:00:48.44601355 +0800 CST	deployed	nginx-0.1.0	1.20.0
+回滚版本1
+helm rollback <RELEASE> [REVISION] [flags]
+helm rollback zny-test-erp-html1 1
+回滚之后默认会打一个新的版本，回滚后查看，版本号为3了
+# helm list
+NAME              	NAMESPACE     	REVISION	UPDATED                               	STATUS  	CHART     	APP VERSION
+my-nginx         	front       	3       	2021-12-17 15:00:48.44601355 +0800 CST	deployed	nginx-0.1.0	1.20.0
+
+调试chart
+# helm install --dry-run --debug  nginx ./chart --generate-name
+调试：
+helm lint Chart_Path                # 查看是否有语法错误
+helm install --dry-run --debug      # 查看渲染结果而不真的发布到k8s
+helm get manifest Release_name      # 查看release的K8S yaml定义文件
+helm template Chart -x templates/deployment.yaml    # 查看指定模板的渲染结果
+
+helm添加模板仓库
+# helm repo add stable https://kuops.com/helm-charts-mirror/
+# helm repo add --ca-file <ca file> --cert-file <cert file> --key-file <key file>     --username <username> --password <password> <repo name> https://kuops.com/helm-charts-mirror/
+# helm repo add --username=<USER> --password=<PWD> stable https://kuops.com/helm-charts-mirror/
+
+helm使用仓库模板创建一个服务
+# helm install --username=<USER> --password=<PWD> --dry-run --debug my-nginx -n front --set ingress.enabled=true stable/nginx
+# helm install --ca-file <ca file> --cert-file <cert file> --key-file <key file>     --username=<username> --password=<password> --version 0.1.0 <repo name>/html
+
+helm charts打包，直接使用tar压缩即可
+# tar -zcvf html.tgz html/
+# helm install --dry-run --debug my-nginx -n front --set ingress.enabled=true nginx.tgz
+
+更新repo
+# helm repo update
+
+查询helm repo模板中可用的包
+# helm search repo nginx
+
+helm删除模板仓库
+# helm repo remove stable https://kuops.com/helm-charts-mirror/
+
+helm 指定默认的deploymentName和nameSpace
+helm install <deployName> -n <nameSpace> --set <自定义变量(默认都在values文件中)> <myChartsDir> --generate-name(这个参数是忽略deployName，在不install中不定义name时添加，不然会报错【Error: INSTALLATION FAILED: must either provide a name or specify --generate-name】)
+# helm install --dry-run my-golang --set image.tag=16-alpine --set ingress.enabled=true . -n back
+
+helm 使用list方式传参数
+helm install --dry-run --debug  --generate-name \
+--set ingress.enabled=true \
+--set ingress.hosts[0].host=test.exmaple.com \
+--set ingress.hosts[0].paths[0].path=/test \
+--set ingress.hosts[0].paths[0].pathType=Prefix \
+--set ingress.tls[0].hosts[0]=test.exmaple.com .
+实现双域名
+helm install --dry-run --debug  --generate-name \
+--set ingress.enabled=true \
+--set ingress.hosts[0].host=test.exmaple.com \
+--set ingress.hosts[0].paths[0].path=/test \
+--set ingress.hosts[0].paths[0].pathType=Prefix \
+--set ingress.hosts[1].host=test1.exmaple.com \
+--set ingress.hosts[1].paths[0].path=/test \
+--set ingress.hosts[1].paths[0].pathType=Prefix \
+--set ingress.tls[0].secretName=exmaple-com-secret \
+--set ingress.tls[0].hosts[0]=test.exmaple.com \
+--set ingress.tls[0].hosts[1]=test1.exmaple.com .
+
+github文档
+https://github.com/chartmuseum/helm-push
+安装helm上传repo工具
+# helm plugin install https://github.com/chartmuseum/helm-push.git
+
+打包html
+# helm cm-push html/ chartmuseum
+上传到repo仓库
+# helm cm-push nginx/ --username=<USER> --password=<PWD> https://kuops.com/helm-charts-mirror/
+
+
+查看部署时使用的详细yaml文件
+# helm status my-nginx -o yaml
+# helm get manifest my-nginx

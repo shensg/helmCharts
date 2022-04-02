@@ -1,0 +1,43 @@
+# The initial configuration template
+
+#{{- if .Values.configmap.enabled -}}
+#{{- $parts := split "-" .Release.Name -}}
+#{{- $dename := list $parts._0 $parts._1 ( .Values.configmap.parts | default $parts._2 ) "conf" | join "-" -}}
+#{{- $relname := .Values.image.configMapName | default $dename -}}
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: {{ $relname }}
+#  namespace: {{ .Release.Namespace }}
+#  labels:
+#    app: {{ $relname }}
+#data:
+#  {{- if .Release.IsUpgrade }}
+#  conf: |-
+#    {{- index (lookup "v1" "ConfigMap" .Release.Namespace $relname).data "conf" | nindent 4}}
+#  {{- else }}
+#  conf: |-
+#  {{- end }}
+#{{- end }}
+---
+{{- if .Values.configmap.enabled -}}
+{{- $parts := split "-" .Release.Name -}}
+{{- $dename := list $parts._0 $parts._1 ( .Values.configmap.parts | default $parts._2 ) "conf" | join "-" -}}
+{{- $relname := .Values.image.configMapName | default $dename -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $relname }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $relname }}
+  annotations:
+    {{- toYaml .Values.configmap.annotations | nindent 4 }}
+data:
+  {{- if (lookup "v1" "ConfigMap" .Release.Namespace $relname).data }}
+  conf: |-
+    {{- index (lookup "v1" "ConfigMap" .Release.Namespace $relname).data "conf" | nindent 4}}
+  {{- else }}
+  conf: |-
+  {{- end }}
+{{- end }}

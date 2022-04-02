@@ -1,0 +1,131 @@
+{{-if not .Values.enviroment }}
+{{- $parts := split "-" .Release.Name -}}
+{{- $configmap := list $parts._0 $parts._1 $parts._2 "conf" | join "-" -}}
+{{- $configpay := list $parts._0 $parts._1 $parts._2 "crt-conf" | join "-" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 75%
+      maxUnavailable: 50%
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app: {{ .Release.Name }}
+        group: {{ list $parts._0 $parts._1 $parts._2 | join "-" }}
+        project: {{ $parts._0 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      hostAliases:
+        {{- toYaml .Values.hostAliases | nindent 8 }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        {{- if .Values.filebeat.enabled }}
+        - name: filebeat
+          image: "{{ .Values.filebeat.repository }}:{{ .Values.filebeat.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: [
+              "-c", "/etc/filebeat/filebeat.yml",
+              "-e",
+          ]
+          volumeMounts:
+            - mountPath: /etc/localtime
+              name: host-time
+            - mountPath: {{ .Values.filebeat.logsMountPath }}
+              name: mount-logs-vol
+            - mountPath: /etc/filebeat
+              name: filebeat-config
+        {{- end }}
+        - name: golang
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "sh", "-c", "sleep 15" ]
+          command: ["sh", "-c", "ln -sf /configs/config.json /wwwroot/config.json && {{ .Values.image.command }}"]
+          {{- if .Values.image.containerPort }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.image.containerPort }}
+              protocol: TCP
+          {{- end }}
+          volumeMounts:
+            - mountPath: {{ .Values.filebeat.logsMountPath }}
+              name: mount-logs-vol
+            - mountPath: /configs
+              name: configmap
+            {{- if .Values.configmap.payEnabled }}
+            - mountPath: /etc/nginx/ssl/public_crt/
+              name: paycertpublickey
+            {{- end }}
+          {{- if .Values.image.livenessProbeEnabled }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      terminationGracePeriodSeconds: 60
+      volumes:
+        - name: configmap
+          configMap:
+            name: {{ .Values.image.configMapName | default $configmap }}
+            items:
+              - key: conf
+                path: config.json
+        {{- if .Values.configmap.payEnabled }}
+        - name: paycertpublickey
+          configMap:
+            name: {{ .Values.configmap.payConfName | default $configpay }}
+        {{- end }}
+        {{- if .Values.filebeat.enabled }}
+        - name: filebeat-config
+          configMap:
+            name: {{ .Values.filebeat.configMapName }}
+            items:
+              - key: conf
+                path: filebeat.yml
+        - name: host-time
+          hostPath:
+            path: /etc/localtime
+        {{- end }}
+        - name: mount-logs-vol
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
