@@ -122,6 +122,7 @@ helm delete <releaseName> -n <namespace>
 nameOverride                |覆盖 .Chart.Name 名称          |""
 fullnameOverride            |覆盖 nginx.fullname 名称       |""
 replicaCount                |Pod 副本数           |1
+revisionHistoryLimit        |历史版本数限制         |2
 image.repository            |`golang` 镜像                        |golang
 image.tag                   |`golang` 标签                     |""
 image.pullPolicy            |`golang` 镜像拉取策略             |IfNotPresent
