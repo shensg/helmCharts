@@ -68,7 +68,7 @@ helm uninstall <releaseName> -n <namespace>
 
 ```bash
 ## 说明
-# 这里以卸载【jxs-cw】后端项目为例。
+# 这里以卸载【test】后端项目为例。
 
 ## 卸载测试环境
 helm uninstall my-redis -n cached
