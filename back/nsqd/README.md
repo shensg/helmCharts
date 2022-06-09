@@ -90,7 +90,7 @@ helm uninstall me -n tool
 image.repository                |镜像                           |nsq
 image.tag                       |标签                           |"v1.1.0"
 image.pullPolicy                |镜像拉取策略                     |IfNotPresent
-imagePullSecrets.name           |包含私有`registry`凭证的 Secret 资源的名称   |regcred
+imagePullSecrets.name           |包含私有`registry`凭证的 Secret 资源的名称   |imageSecret
 nsqlookupd.replicaCount         |`nsqlookupd` Pod 副本数                   | 2
 nsqlookupd.service.type         |`nsqlookupd` Service 类型                 | ClusterIP
 nsqlookupd.podAnnotations       |`nsqlookupd` Pod 的注释                   | {}

@@ -11,7 +11,7 @@ image:
   memcachedConnections: "1024"
 
 imagePullSecrets:
-  - name: regcred
+  - name: imageSecret
 
 metrics:
   enabled: true

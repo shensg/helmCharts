@@ -87,7 +87,7 @@ image.tag                   |`memcached` 标签                           |"1.5.
 image.pullPolicy            |`memcached` 镜像拉取策略                   |IfNotPresent
 image.memcachedMaxMemory    |`memcached` 容器的最大内存使用              |"64"
 image.memcachedConnections  |`memcached` 容器的最大同时连接数             | "1024"
-imagePullSecrets.name       |包含私有`registry`凭证的 Secret 资源的名称   |regcred
+imagePullSecrets.name       |包含私有`registry`凭证的 Secret 资源的名称   |imageSecret
 metrics.enabled             |启用 Metrics                | true
 metrics.repository          |`metrics` 镜像              | memcached-exporter
 metrics.pullPolicy          |`metrics` 镜像拉取策略       | IfNotPresent

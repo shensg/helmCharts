@@ -16,7 +16,7 @@ image:
   livenessProbePath: /
 
 imagePullSecrets:
-  - name: regcred
+  - name: imageSecret
 
 nameOverride: ""
 fullnameOverride: ""

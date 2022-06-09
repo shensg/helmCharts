@@ -140,7 +140,7 @@ configmap.enabled           |`额外参数` 启用 ConfigMap                 |fa
 configmap.payEnabled        |`额外参数` 挂载payCertPublicKey          |false
 configmap.payConfName       |`额外参数` 挂载支付使用公钥文件名           |${team}-${env}-${project}-crt-conf
 hostAliases                 |`额外参数` 绑定容器本地hosts              |[]
-imagePullSecrets.name       |包含私有`registry`凭证的 Secret 资源的名称   |regcred
+imagePullSecrets.name       |包含私有`registry`凭证的 Secret 资源的名称   |imageSecret
 podAnnotations              |Pod 的注释    |{}
 serviceAnnotations          |Service 的注释    |{}
 podSecurityContext          |Pod 的安全上下文    |{}

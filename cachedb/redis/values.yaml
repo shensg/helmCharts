@@ -10,7 +10,7 @@ image:
   redisPassword: ""
 
 imagePullSecrets:
-  - name: regcred
+  - name: imageSecret
 
 metrics:
   enabled: true

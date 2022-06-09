@@ -86,7 +86,7 @@ image.repository            |`redis` 镜像                           |redis
 image.tag                   |`redis` 标签                           |"4.0.14-alpine"
 image.pullPolicy            |`redis` 镜像拉取策略                   |IfNotPresent
 image.redisPassword         |`redis` 容器的 requirepass      |""
-imagePullSecrets.name       |包含私有`registry`凭证的 Secret 资源的名称   |regcred
+imagePullSecrets.name       |包含私有`registry`凭证的 Secret 资源的名称   |imageSecret
 metrics.enabled             |启用 Metrics                | true
 metrics.repository          |`metrics` 镜像              | redis_exporter
 metrics.pullPolicy          |`metrics` 镜像拉取策略       | IfNotPresent

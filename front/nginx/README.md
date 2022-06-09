@@ -102,7 +102,7 @@ image.pullPolicy            |`nginx` 镜像拉取策略             |IfNotPresen
 image.containerPort         |`nginx` 容器的监听端口           |80
 image.livenessProbeEnabled  |`nginx` 容器启用 存活探针        |true
 image.livenessProbePath     |`nginx` 容器的存活探针 httpGet.path |/
-imagePullSecrets.name       |包含私有`registry`凭证的 Secret 资源的名称   |regcred
+imagePullSecrets.name       |包含私有`registry`凭证的 Secret 资源的名称   |imageSecret
 podAnnotations              |Pod 的注释    |{}
 podSecurityContext          |Pod 的安全上下文    |{}
 securityContext             |设置安全上下文            |{}
