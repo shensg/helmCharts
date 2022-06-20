@@ -1,0 +1,94 @@
+{{- $parts := split "-" .Release.Name -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+    {{- include "pyroscope.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      micro: service
+      app: {{ .Release.Name }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  serviceName: {{ .Release.Name }}
+  podManagementPolicy: {{ .Values.podManagementPolicy }}
+  updateStrategy:
+    {{- toYaml .Values.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        micro: service
+        app: {{ .Release.Name }}
+        group: {{ list $parts._0 $parts._1 $parts._2 | join "-" }}
+        project: {{ $parts._0 }}
+        {{- include "pyroscope.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: pyroscope
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - server
+            {{- range .Values.args }}
+            - {{ . }}
+            {{- end }}
+          env:
+            - name: TZ
+              value: {{ .Values.timezone }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.image.port }}
+              protocol: TCP
+          {{- if .Values.image.readinessProbeEnabled }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: storage-dir
+              mountPath: /var/lib/pyroscope
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: storage-dir
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 14 }}
+        storageClassName: {{ .Values.persistence.storageClassName }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.storage }}
+  {{- end }}

@@ -1,0 +1,110 @@
+# Default values for pyroscope.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+revisionHistoryLimit: 2
+
+image:
+  repository: pyroscope
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "v1"
+  port: 4040
+  readinessProbeEnabled: false
+
+args: []
+
+timezone: "Asia/Shanghai"
+imagePullSecrets:
+  - name: imageSecret
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+podManagementPolicy: Parallel
+
+updateStrategy:
+    type: RollingUpdate
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    kubernetes.io/ingress.class: edge
+    kubernetes.io/ingress.rule-mix: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: basic-auth
+  hosts:
+    - chart-example.local
+    # - host: chart-example.local
+    #   paths:
+    #     - path: /
+    #       pathType: ImplementationSpecific
+  tls:
+    enabled: true
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  limits:
+    cpu: 1
+    memory: 2Gi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 60
+  successThreshold: 15
+  failureThreshold: 15
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+persistence:
+  enabled: false
+  storageClassName: nfs-default
+  storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+
+basicAuth:
+  enabled: false
+  type: Opaque
+  username: "admin"
+  password: "123456"
