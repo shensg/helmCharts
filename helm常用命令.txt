@@ -63,7 +63,7 @@ NAME              	NAMESPACE     	REVISION	UPDATED                              
 my-nginx         	front       	2       	2021-12-17 15:00:48.44601355 +0800 CST	deployed	nginx-0.1.0	1.20.0
 回滚版本1
 helm rollback <RELEASE> [REVISION] [flags]
-helm rollback zny-test-erp-html1 1
+helm rollback my-nginx 1
 回滚之后默认会打一个新的版本，回滚后查看，版本号为3了
 # helm list
 NAME              	NAMESPACE     	REVISION	UPDATED                               	STATUS  	CHART     	APP VERSION
