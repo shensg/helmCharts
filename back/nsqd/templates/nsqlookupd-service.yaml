@@ -1,4 +1,5 @@
-{{- $nsqlookupdName := printf "%s-nsqlookupd" .Release.Name -}}
+{{- $parts := split "-" .Release.Name -}}
+{{- $nsqlookupdName := printf "%s" (list $parts._0 $parts._1 $parts._2 "nsqlookupd" | join "-") -}}
 apiVersion: v1
 kind: Service
 metadata:

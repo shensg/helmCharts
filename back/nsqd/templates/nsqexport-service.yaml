@@ -1,5 +1,6 @@
 {{- if .Values.nsqexport.enabled -}}
-{{- $nsqexportName := printf "%s-nsqexport" .Release.Name -}}
+{{- $parts := split "-" .Release.Name -}}
+{{- $nsqexportName := printf "%s" (list $parts._0 $parts._1 $parts._2 "nsqexport" | join "-") -}}
 apiVersion: v1
 kind: Service
 metadata:

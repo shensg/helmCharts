@@ -124,6 +124,7 @@ nsqadmin.securityContext        |`nsqadmin` 设置安全上下文             | 
 nsqadmin.ingress.enabled        |`nsqadmin` 是否启用 Ingress，默认添加hosts有配置即启用    | true
 nsqadmin.ingress.className      |`nsqadmin` Ingress className        | ""
 nsqadmin.ingress.annotations    |`nsqadmin` Ingress 注释              | kubernetes.io/ingress.class: edge<br>kubernetes.io/ingress.rule-mix: "false"<br>nginx.ingress.kubernetes.io/use-regex: "true"<br>nginx.ingress.kubernetes.io/ssl-redirect: "true"<br>nginx.ingress.kubernetes.io/auth-type: basic<br>nginx.ingress.kubernetes.io/auth-secret: basic-auth
+nsqadmin.ingress.tls.enabled    |`nsqadmin` TLS是否绑定ssl证书         | true
 nsqadmin.ingress.hosts          |`nsqadmin` Ingress 域名              | []
 nsqadmin.resources              |`nsqadmin` CPU、内存的资源请求、限制    | {}
 nsqadmin.nodeSelector           |`nsqadmin` 标签                     | {}

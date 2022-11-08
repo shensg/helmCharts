@@ -1,5 +1,5 @@
 {{- $parts := split "-" .Release.Name -}}
-{{- $nsqadminName := printf "%s-nsqadmin" .Release.Name -}}
+{{- $nsqadminName := printf "%s" (list $parts._0 $parts._1 $parts._2 "nsqadmin" | join "-") -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

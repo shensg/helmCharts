@@ -1,5 +1,5 @@
 {{- $parts := split "-" .Release.Name -}}
-{{- $nsqdName := printf "%s-nsqd" .Release.Name -}}
+{{- $nsqdName := printf "%s" .Release.Name -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

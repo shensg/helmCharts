@@ -1,5 +1,5 @@
 {{- if .Values.nsqadmin.ingress.hosts -}}
-{{- $parts := split "-" .Release.Name -}}
+{{- $nsqadminName := printf "%s" (list $parts._0 $parts._1 $parts._2 "nsqadmin" | join "-") -}}
 {{- $fullName := printf "%s-nsqadmin" .Release.Name -}}
 {{- $svcPort := .Values.nsqadmin.service.port -}}
 {{- if and .Values.nsqadmin.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
@@ -29,6 +29,7 @@ spec:
   ingressClassName: {{ .Values.nsqadmin.ingress.className }}
   {{- end }}
   {{- if .Values.nsqadmin.ingress.enabled }}
+  {{- if .Values.nsqadmin.ingress.tls.enabled }}
   tls:
     {{- range .Values.nsqadmin.ingress.hosts }}
     - hosts:
@@ -36,6 +37,7 @@ spec:
       {{- $parts := split "." . }}
       secretName: {{ list $parts._1 $parts._2 "secret" | join "-"  }}
     {{- end }}
+  {{- end }}
   {{- end }}
   rules:
     {{- range .Values.nsqadmin.ingress.hosts }}

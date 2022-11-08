@@ -1,6 +1,7 @@
 {{- if .Values.nsqexport.enabled -}}
 {{- $parts := split "-" .Release.Name -}}
-{{- $nsqexportName := printf "%s-nsqexport" .Release.Name -}}
+{{- $nsqexportName := printf "%s" (list $parts._0 $parts._1 $parts._2 "nsqexport" | join "-") -}}
+{{- $nsqlookupdName := printf "%s" (list $parts._0 $parts._1 $parts._2 "nsqlookupd" | join "-") -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
