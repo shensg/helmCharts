@@ -100,7 +100,7 @@ spec:
       name: data
     spec:
       accessModes:
-        - {{ .Values.nsqd.persistence.accessModes }}
+        {{- toYaml .Values.nsqd.persistence.accessModes ｜ nindent 14 }}
       resources:
         requests:
           storage: {{ .Values.nsqd.persistence.size | quote }}
